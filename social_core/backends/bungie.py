@@ -39,6 +39,21 @@ class BungieOAuth2(BaseOAuth2):
         headers["Authorization"] = "Bearer " + access_token
         return self.get_json(url, headers=headers)
 
+    # 这里注释掉redirect_uri的原因是默认获取的redirect_url会和bungie官网设置的不一致，导致请求400
+    def auth_complete_params(self, state=None):
+        params = {
+            'grant_type': 'authorization_code',  # request auth code
+            'code': self.data.get('code', ''),  # server response code
+            # 'redirect_uri': self.get_redirect_uri(state)
+        }
+        if not self.use_basic_auth():
+            client_id, client_secret = self.get_key_and_secret()
+            params.update({
+                'client_id': client_id,
+                'client_secret': client_secret,
+            })
+        return params
+
     def auth_complete(self, *args, **kwargs):
         """Completes login process, must return user instance"""
         self.process_error(self.data)
