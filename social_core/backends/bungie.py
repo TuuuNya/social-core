@@ -1,6 +1,7 @@
 """
 Bungie OAuth2 backend
 """
+from urllib.parse import unquote, urlencode
 from social_core.backends.oauth import BaseOAuth2
 
 
@@ -19,6 +20,22 @@ class BungieOAuth2(BaseOAuth2):
         ("membership_id", "membership_id"),
         ("refresh_expires_in", "refresh_expires_in"),
     ]
+
+    def auth_url(self):
+        """Return redirect url"""
+        state = self.get_or_create_state()
+        params = self.auth_params(state)
+        params.update(self.get_scope_argument())
+        params.update(self.auth_extra_arguments())
+        params.update({
+            'reauth': self.data.get('reauth', 2)
+        })
+        params = urlencode(params)
+        if not self.REDIRECT_STATE:
+            # redirect_uri matching is strictly enforced, so match the
+            # providers value exactly.
+            params = unquote(params)
+        return f"{self.authorization_url()}?{params}"
 
     def auth_html(self):
         """Abstract Method Inclusion"""
