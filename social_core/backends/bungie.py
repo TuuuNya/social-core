@@ -102,8 +102,18 @@ class BungieOAuth2(BaseOAuth2):
         membership_id = kwargs["response"]["membership_id"]
         url = "https://www.bungie.net/Platform/User/GetBungieNetUser/"
         response = self.make_bungie_request(url, access_token, kwargs)
+
+        dms_url = "https://www.bungie.net/Platform/User/GetMembershipsForCurrentUser/"
+        dms_response = self.make_bungie_request(dms_url, access_token, kwargs)
+        destinyMemberships = dms_response["Response"]["destinyMemberships"]
+        steamMemberships = filter(lambda x: x["membershipType"] == 3, destinyMemberships)
+        steamMembership = next(steamMemberships, None)
+
+        if steamMembership:
+            primaryMembershipId = steamMembership["membershipId"]
+
         username = response["Response"]["user"]["displayName"]
-        return {"username": username, "uid": membership_id}
+        return {"username": username, "uid": membership_id, "last_name": primaryMembershipId}
 
     def get_user_details(self, response, *args, **kwargs):
         """Return user details from Bungie account"""
@@ -111,5 +121,6 @@ class BungieOAuth2(BaseOAuth2):
         return {
             "first_name": username,
             "username": username,
+            "last_name": response["last_name"],
             "uid": response["uid"],
         }
