@@ -82,7 +82,7 @@ class BungieOAuth2(BaseOAuth2):
             auth=self.auth_complete_credentials(),
             method=self.ACCESS_TOKEN_METHOD,
         )
-        print(response)
+
         self.process_error(response)
         return self.do_auth(
             response["access_token"], response=response, *args, **kwargs
